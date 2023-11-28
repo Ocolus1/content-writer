@@ -135,32 +135,29 @@ def advanced_options():
 
 
 def generate_prompt():
-    prompt = f"Write an article about {st.session_state['target_keyword']}."
+    prompt = f"Write an in-depth article about {st.session_state['target_keyword']}. With a good article title."
 
     if st.session_state.get("country"):
-        prompt += f" The article should be relevant to {st.session_state['country']}."
+        prompt += f" Focus on its relevance in {st.session_state['country']}."
 
     if st.session_state.get("tone_of_voice"):
-        prompt += (
-            f" The tone of the article should be {st.session_state['tone_of_voice']}."
-        )
+        prompt += f" Maintain a {st.session_state['tone_of_voice']} tone."
 
     if st.session_state.get("point_of_view"):
-        prompt += f" Write from a {st.session_state['point_of_view']}."
+        prompt += f" Use a {st.session_state['point_of_view']}."
 
     if st.session_state.get("faq_section"):
-        prompt += " Include an FAQ section."
+        prompt += " Include an FAQ section addressing common questions."
 
     if st.session_state.get("youtube_suggestions"):
-        prompt += " Suggest relevant YouTube videos. It should be urls to the videos"
+        prompt += " Provide YouTube video suggestions for further learning."
 
     if st.session_state.get("meta_description"):
-        prompt += " Create a meta description for the article."
+        prompt += " Add a compelling meta description summarizing the article."
 
     if st.session_state.get("featured_image"):
-        prompt += " Suggest a featured image. It should be urls to the image"
+        prompt += " Recommend a featured image that captures the essence of the topic."
 
-    # Advanced Options
     if st.session_state.get("extra_title_prompt"):
         prompt += f" {st.session_state['extra_title_prompt']}"
 
@@ -171,14 +168,23 @@ def generate_prompt():
         prompt += f" {st.session_state['extra_content_prompt']}"
 
     if st.session_state.get("keywords"):
-        prompt += f" Include keywords: {st.session_state['keywords']}."
+        prompt += (
+            f" Incorporate these additional keywords: {st.session_state['keywords']}."
+        )
 
-    # Target word count and section word counts can be mentioned as guidelines
     if st.session_state.get("word_per_h2_section"):
-        prompt += f" Approximately {st.session_state['word_per_h2_section']} words per H2 section."
+        prompt += f" Ensure each major heading section has at least {st.session_state['word_per_h2_section']} words."
 
     if st.session_state.get("word_per_h3_section"):
-        prompt += f" Approximately {st.session_state['word_per_h3_section']} words per H3 section."
+        prompt += f" Ensure each subheading section has at least {st.session_state['word_per_h3_section']} words."
+
+    # New Enhancements
+    prompt += " Include real-world case studies or examples for practical insights if relevant."
+    prompt += " Customize the introduction and conclusion to add uniqueness, make it lengthy."
+    prompt += " Tailor the content to the specified target audience if relevant."
+    prompt += " Suggest interactive elements like polls or quizzes if relevant."
+    prompt += " Recommend social media post ideas related to the article if relevant."
+    prompt += " The entire article word count must be more than 1500 words, this is very important do not mention it in the article."
 
     return prompt
 
@@ -196,6 +202,7 @@ def get_gpt4_response(prompt):
                 "content": prompt,
             },
         ],
+        max_tokens=4096,
     )
 
     return completion.choices[0].message.content
