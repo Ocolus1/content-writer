@@ -2,8 +2,11 @@
 import streamlit as st
 import pandas as pd
 from openai import OpenAI
+import os
 
-client = OpenAI()
+client = OpenAI(
+    api_key=os.environ.get("OPENAI_API_KEY"),
+)
 
 
 # Function to load countries
@@ -203,7 +206,6 @@ def display_article():
 
     # Generate the prompt
     prompt = generate_prompt()
-
 
     # Show a spinner while waiting for the response
     with st.spinner("Generating article, please wait..."):
