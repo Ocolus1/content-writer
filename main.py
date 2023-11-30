@@ -134,8 +134,17 @@ def advanced_options():
         st.rerun()
 
 
-def generate_prompt():
-    prompt = f"Write an in-depth article about {st.session_state['target_keyword']}. With a good article title."
+def generate_title():
+    prompt = ""
+    if st.session_state.get("extra_title_prompt"):
+        prompt = f"{st.session_state['extra_title_prompt']}"
+
+    title = f"Generate a single line blog title focused on {st.session_state['target_keyword']}, ensuring it is engaging, SEO-optimized, and reflective of key themes in {st.session_state['target_keyword']}. {prompt}"
+    return title
+
+
+def generate_intro(title):
+    prompt = ""
 
     if st.session_state.get("country"):
         prompt += f" Focus on its relevance in {st.session_state['country']}."
@@ -146,26 +155,29 @@ def generate_prompt():
     if st.session_state.get("point_of_view"):
         prompt += f" Use a {st.session_state['point_of_view']}."
 
-    if st.session_state.get("faq_section"):
-        prompt += " Include an FAQ section addressing common questions."
-
-    if st.session_state.get("youtube_suggestions"):
-        prompt += " Provide YouTube video suggestions for further learning."
-
-    if st.session_state.get("meta_description"):
-        prompt += " Add a compelling meta description summarizing the article."
-
-    if st.session_state.get("featured_image"):
-        prompt += " Recommend a featured image that captures the essence of the topic."
-
-    if st.session_state.get("extra_title_prompt"):
-        prompt += f" {st.session_state['extra_title_prompt']}"
-
     if st.session_state.get("extra_intro_prompt"):
-        prompt += f" {st.session_state['extra_intro_prompt']}"
+        prompt = f" {st.session_state['extra_intro_prompt']}"
 
-    if st.session_state.get("extra_content_prompt"):
-        prompt += f" {st.session_state['extra_content_prompt']}"
+    intro = f"""
+    Write an introduction for the article titled '{title}', 
+    setting the stage for an in-depth exploration of {st.session_state['target_keyword']}, 
+    its importance in the relevant field, and its impact on users or industry trends
+    {prompt}
+    """
+    return intro
+
+
+def generate_body():
+    prompt = ""
+
+    if st.session_state.get("country"):
+        prompt += f" Focus on its relevance in {st.session_state['country']}."
+
+    if st.session_state.get("tone_of_voice"):
+        prompt += f" Maintain a {st.session_state['tone_of_voice']} tone."
+
+    if st.session_state.get("point_of_view"):
+        prompt += f" Use a {st.session_state['point_of_view']}."
 
     if st.session_state.get("keywords"):
         prompt += (
@@ -178,38 +190,14 @@ def generate_prompt():
     if st.session_state.get("word_per_h3_section"):
         prompt += f" Ensure each subheading section has at least {st.session_state['word_per_h3_section']} words."
 
-    # New Enhancements
-    prompt += " Include real-world case studies or examples for practical insights if relevant."
-    prompt += (
-        " Customize the introduction and conclusion to add uniqueness, make it lengthy."
-    )
-    prompt += " Tailor the content to the specified target audience if relevant."
-    prompt += " Suggest interactive elements like polls or quizzes if relevant."
-    prompt += " Recommend social media post ideas related to the article if relevant."
-    prompt += " The entire article word count must be more than 1500 words, this is very important do not mention it in the article."
+    if st.session_state.get("extra_content_prompt"):
+        prompt += f" {st.session_state['extra_content_prompt']}"
 
-    return prompt
-
-
-def generate_title():
-    title = f"Generate a single line blog title focused on {st.session_state['target_keyword']}, ensuring it is engaging, SEO-optimized, and reflective of key themes in {st.session_state['target_keyword']}."
-    return title
-
-
-def generate_intro(title):
-    intro = f"""
-    Write an introduction for the article titled '{title}', 
-    setting the stage for an in-depth exploration of {st.session_state['target_keyword']}, 
-    its importance in the relevant field, and its impact on users or industry trends
-    """
-    return intro
-
-
-def generate_body():
     body = f"""
     Discuss the fundamental principles or basics of {st.session_state['target_keyword']}, and their relevance in the current context.
     Explore advanced concepts, trends, or strategies related to {st.session_state['target_keyword']} and how they can be applied effectively.
     Share practical tips, insights, or case studies illustrating the successful application of {st.session_state['target_keyword']}.
+    {prompt}
     """
     return body
 
@@ -237,16 +225,16 @@ def generate_metadata():
 
 def generate_image():
     img = f"""
-        Give  an ideal featured image for the article that visually represents the core themes or concepts of {st.session_state['target_keyword']} in a URL link.
+        Give an ideal featured image for the article that visually represents the core themes or concepts of {st.session_state['target_keyword']} in a URL link.
     """
     return img
 
 
-# def generate_prompts():
-#     prompt = ""
-
-#     intro = f""
-#     pass
+def generate_conclusion(body):
+    conclusion = f"""
+        Give an ideal conclusion represents the core themes or concepts of {st.session_state['target_keyword']}and supplements the body of the article: {body}.
+    """
+    return conclusion
 
 
 # Assuming you have a list to track the conversation history
@@ -275,7 +263,6 @@ def get_gpt4_response(prompt):
     response = completion.choices[0].message.content
     conversation_history.append({"role": "system", "content": response})
 
-
     return response
 
 
@@ -289,8 +276,18 @@ def update_progress(progress_bar, status_text, step, total_steps):
 def display_article():
     st.header("Generated Article")
 
-    # Total number of steps in the content generation process
-    total_steps = 7
+    # Initialize total steps
+    total_steps = 4  # Base steps for Title, Intro, and Body
+
+    # Increment total_steps based on selected options
+    if st.session_state.get("faq_section"):
+        total_steps += 1
+    if st.session_state.get("youtube_suggestions"):
+        total_steps += 1
+    if st.session_state.get("meta_description"):
+        total_steps += 1
+    if st.session_state.get("featured_image"):
+        total_steps += 1
 
     # Initialize the progress bar and status text
     progress_bar = st.progress(0)
@@ -303,40 +300,54 @@ def display_article():
         get_title = generate_title()
         generated_title = get_gpt4_response(get_title)
 
-
         # Step 2: Generate Intro
         update_progress(progress_bar, status_text, 2, total_steps)
         get_intro = generate_intro(generated_title)
         generated_intro = get_gpt4_response(get_intro)
-
 
         # Step 3: Generate Body
         update_progress(progress_bar, status_text, 3, total_steps)
         get_body = generate_body()
         generated_body = get_gpt4_response(get_body)
 
+        current_step = 4
 
-        # Step 4: Generate FAQ
-        update_progress(progress_bar, status_text, 4, total_steps)
-        get_faq = generate_FAQ()
-        generated_faq = get_gpt4_response(get_faq)
+        generated_faq = ""
+        generated_youtube = ""
+        generated_metadata = ""
+        generated_image = ""
 
+        if st.session_state.get("faq_section"):
+            # Generate FAQ
+            update_progress(progress_bar, status_text, current_step, total_steps)
+            get_faq = generate_FAQ()
+            generated_faq = get_gpt4_response(get_faq)
+            current_step += 1
 
-        # Step 5: Generate YouTube Suggestions
-        update_progress(progress_bar, status_text, 5, total_steps)
-        get_youtube = generate_youtube()
-        generated_youtube = get_gpt4_response(get_youtube)
+        if st.session_state.get("youtube_suggestions"):
+            # Generate YouTube Suggestions
+            update_progress(progress_bar, status_text, current_step, total_steps)
+            get_youtube = generate_youtube()
+            generated_youtube = get_gpt4_response(get_youtube)
+            current_step += 1
 
+        if st.session_state.get("meta_description"):
+            # Generate Metadata
+            update_progress(progress_bar, status_text, current_step, total_steps)
+            get_metadata = generate_metadata()
+            generated_metadata = get_gpt4_response(get_metadata)
+            current_step += 1
 
-        # Step 6: Generate Metadata
-        update_progress(progress_bar, status_text, 6, total_steps)
-        get_metadata = generate_metadata()
-        generated_metadata = get_gpt4_response(get_metadata)
+        if st.session_state.get("featured_image"):
+            # Generate Image Suggestions
+            update_progress(progress_bar, status_text, current_step, total_steps)
+            get_image = generate_image()
+            generated_image = get_gpt4_response(get_image)
+            current_step += 1
 
-        # Step 7: Generate Image Suggestions
-        update_progress(progress_bar, status_text, 7, total_steps)
-        get_image = generate_image()
-        generated_image = get_gpt4_response(get_image)
+        update_progress(progress_bar, status_text, current_step, total_steps)
+        get_conclusion = generate_conclusion(generated_body)
+        generated_conclusion = get_gpt4_response(get_conclusion)
 
     # Update the status to indicate completion
     status_text.text("Content generation complete!")
@@ -348,16 +359,18 @@ def display_article():
 {generated_intro}
 
 {generated_body}
-
-{generated_faq}
-
-{generated_youtube}
-
-{generated_metadata}
-
-{generated_image}
-
     """
+    if st.session_state.get("faq_section"):
+        generated_article += f"\n{generated_faq}"
+    if st.session_state.get("youtube_suggestions"):
+        generated_article += f"\n{generated_youtube}"
+    if st.session_state.get("meta_description"):
+        generated_article += f"\n{generated_metadata}"
+    if st.session_state.get("featured_image"):
+        generated_article += f"\n{generated_image}"
+
+    generated_article += f"\n{generated_conclusion}"
+
     st.text_area("Article", generated_article, height=600)
     conversation_history.clear()
 
