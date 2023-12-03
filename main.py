@@ -8,6 +8,24 @@ client = OpenAI(
     api_key=os.environ.get("OPENAI_API_KEY"),
 )
 
+exclusion_phrases = [
+    "In conclusion",
+    "It is evident that",
+    "Research indicates",
+    "Data suggests",
+    "Studies show",
+    "As previously mentioned",
+    "It can be observed that",
+    "It is a known fact",
+    "To summarize",
+    "Therefore, it can be concluded",
+    "It is noteworthy to mention",
+    "One might argue",
+    "The evidence points to",
+    "According to the data",
+    "This leads to the conclusion",
+]
+
 
 # Function to load countries
 def load_countries():
@@ -163,6 +181,8 @@ def generate_intro(title):
     setting the stage for an in-depth exploration of {st.session_state['target_keyword']}, 
     its importance in the relevant field, and its impact on users or industry trends
     {prompt}
+
+    Do not add keywords like this {exclusion_phrases} be more creative.
     """
     return intro
 
@@ -198,6 +218,8 @@ def generate_body():
     Explore advanced concepts, trends, or strategies related to {st.session_state['target_keyword']} and how they can be applied effectively.
     Share practical tips, insights, or case studies illustrating the successful application of {st.session_state['target_keyword']}.
     {prompt}
+
+    Do not add keywords like this {exclusion_phrases} be more creative.
     """
     return body
 
@@ -219,6 +241,7 @@ def generate_youtube():
 def generate_metadata():
     metadata = f"""
         Draft a compelling meta description for the article, summarizing its key points about {st.session_state['target_keyword']} and inviting readers to explore in-depth
+        Do not add keywords like this {exclusion_phrases} be more creative.
     """
     return metadata
 
@@ -233,6 +256,7 @@ def generate_image():
 def generate_conclusion(body):
     conclusion = f"""
         Give an ideal conclusion represents the core themes or concepts of {st.session_state['target_keyword']}and supplements the body of the article: {body}.
+        Do not add keywords like this {exclusion_phrases} be more creative.
     """
     return conclusion
 
