@@ -383,17 +383,29 @@ def display_article():
 {generated_intro}
 
 {generated_body}
+
     """
     if st.session_state.get("faq_section"):
-        generated_article += f"\n{generated_faq}"
+        generated_article += f"""
+{generated_faq}
+"""
     if st.session_state.get("youtube_suggestions"):
-        generated_article += f"\n{generated_youtube}"
+        generated_article += f"""
+{generated_youtube}
+"""
     if st.session_state.get("meta_description"):
-        generated_article += f"\n{generated_metadata}"
+        generated_article += f"""
+{generated_metadata}
+"""
     if st.session_state.get("featured_image"):
-        generated_article += f"\n{generated_image}"
+        generated_article += f"""
+{generated_image}
+"""
 
-    generated_article += f"\n{generated_conclusion}"
+    generated_article += f"""
+Conclusion
+{generated_conclusion}
+"""
 
     st.text_area("Article", generated_article, height=600)
     conversation_history.clear()
