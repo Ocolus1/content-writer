@@ -24,6 +24,7 @@ exclusion_phrases = [
     "The evidence points to",
     "According to the data",
     "This leads to the conclusion",
+    "Diving into the world",
 ]
 
 
