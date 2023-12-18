@@ -83,6 +83,7 @@ def user_input_form():
         # Button to add more features
         if st.button("Add Topic"):
             st.session_state.num_features += 1
+            st.rerun()
 
         st.session_state["target_keywords"] = features_topic
 
@@ -327,6 +328,23 @@ def update_progress(progress_bar, status_text, step, total_steps):
     status_text.text(f"Generating content: Step {step}/{total_steps}...")
 
 
+def on_download_click():
+    # Reset the app to the initial input page after download
+    st.session_state.clear()  # Clearing the entire session state
+
+    # Set specific default values if needed
+    st.session_state["current_page"] = "User Input Form"
+
+    
+def on_download_click_two(zip_filename):
+    os.remove(zip_filename)
+    # Reset the app to the initial input page after download
+    st.session_state.clear()  # Clearing the entire session state
+
+    # Set specific default values if needed
+    st.session_state["current_page"] = "User Input Form"
+
+
 def display_article():
     # st.header("Generated Article")
 
@@ -456,8 +474,8 @@ Conclusion
                 "Download Article as TXT",
                 articles[0],
                 file_name="generated_article.txt",
+                on_click=on_download_click,  
             )
-            st.write("Download successful!!!")
         else:
             with st.expander("Download All Articles as Zip"):
                 with st.spinner("Generating zip file..."):
@@ -474,27 +492,14 @@ Conclusion
                     with open(zip_filename, "rb") as f:
                         zip_data = f.read()
 
-                    if st.download_button(
+                    st.download_button(
                         label=f"Download {zip_filename}",
                         data=zip_data,
                         file_name=zip_filename,
                         mime="application/zip",
-                    ):
-
-                        st.success(f"{zip_filename} downloaded successfully!")
-
-                        # Delete the zip file after successful download
-                        os.remove(zip_filename)
-                        st.success(f"{zip_filename} deleted successfully!")
-
-                        # Reset the app to the initial input page after download
-                        st.session_state.clear()  # Clearing the entire session state
-
-                        # Set specific default values if needed
-                        st.session_state["current_page"] = "User Input Form"
-
-                        st.rerun()
-
+                        on_click=on_download_click_two(zip_filename), 
+                    )
+                        
             st.success("Download ready!")
 
     conversation_history.clear()
